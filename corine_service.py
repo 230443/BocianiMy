@@ -30,7 +30,7 @@ def get_corine_data(x, y, diameter=10000):
             attributes["LABEL3"],
         )
     except Exception:
-        return None
+        result = (None, None)
     return result
 
 
@@ -73,7 +73,7 @@ def get_corine_data_types(x, y, diameter=10000):
 
     l = get_corine_data_list(x, y, diameter)
     if l[0] == None:
-        return None
+        return ""
 
     return ",".join([x[1] for x in set(l)])
 
@@ -81,13 +81,12 @@ def get_corine_data_types(x, y, diameter=10000):
 def get_latest_corine_label(x, y, diameter=10000):
     l = get_corine_data_list(x, y, diameter)
 
-    if l[0] == None:
-        return None
-
     max_no_500_key = 0
     label = ""
 
     for k, v in l:
+        if k is None:
+            return ""
         k = int(k)
         if k > max_no_500_key and k < 500:
             max_no_500_key = k
