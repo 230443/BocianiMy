@@ -127,3 +127,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+data/u2018_clc2018_v2020_20u1_geoPackage
