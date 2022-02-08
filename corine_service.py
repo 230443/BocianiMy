@@ -14,6 +14,8 @@ BASE_PARAMS = {
 
 
 def get_corine_data(x, y, diameter=10000):
+    if y < 34.56:
+        return (None, None)
     payload = BASE_PARAMS
 
     payload["mapExtent"] = ",".join([str(i) for i in get_envelope(x, y, diameter)])
