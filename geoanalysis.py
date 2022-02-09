@@ -1,8 +1,7 @@
-import numpy as np
 import pandas as pd
 import geopandas as gpd
 from geopandas import GeoDataFrame
-from datetime import datetime, timedelta
+from datetime import timedelta
 import movingpandas as mpd
 import glob
 import corine_service as cs
@@ -28,7 +27,7 @@ def import_data(data_directory_path):
     df = df.drop(
         columns=[
             "datatype",
-            "UTC_datetime",
+            "UTC_time",
             "UTC_date",
             "satcount",
             "U_bat_mV",
@@ -67,13 +66,13 @@ def detect_stops(tc, min_duration_h, max_diameter):
     stops = mpd.TrajectoryStopDetector(tc).get_stop_points(
         min_duration=min_duration, max_diameter=max_diameter
     )
+    if len(stops) != 0:
+        stops = stops.assign(duration_h=stops.duration_s / (60 * 60))
+        stops = stops.drop(columns=["duration_s"])
 
-    stops = stops.assign(duration_h=stops.duration_s / (60 * 60))
-    stops = stops.drop(columns=["duration_s"])
-
-    stops[["corine_label_id", "corine_label_text"]] = stops.apply(
-        lambda row: cs.get_corine_data(x=row["geometry"].x, y=row["geometry"].y),
-        axis=1,
-        result_type="expand",
-    )
+        stops[["corine_label_id", "corine_label_text"]] = stops.apply(
+            lambda row: cs.get_corine_data(x=row["geometry"].x, y=row["geometry"].y),
+            axis=1,
+            result_type="expand",
+        )
     return stops

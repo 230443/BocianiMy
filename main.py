@@ -80,47 +80,60 @@ layout = [
     ],
 ]
 
-# Create the Window
-window = sg.Window("Window Title", layout)
-# Event Loop to process "events" and get the "values" of the inputs
-while True:
-    event, values = window.read()
 
-    if (
-        event == sg.WIN_CLOSED or event == "Cancel"
-    ):  # if user closes window or clicks cancel
-        break
+def main():
+    # Create the Window
+    window = sg.Window("Window Title", layout)
+    # Event Loop to process "events" and get the "values" of the inputs
+    while True:
+        event, values = window.read()
 
-    if event == "Otwórz" and values["dirname"] != "":
-        df = g.import_data(data_directory_path=values["dirname"])
-        window["-PREVIEW_TABLE-"].update(
-            visible=True,
-            values=list(df.values),
-        )
-        window["deviceIdListbox"].update(visible=True, values=g.get_device_ids(df))
-        window["stopDetect"].update(disabled=False)
+        if (
+            event == sg.WIN_CLOSED or event == "Cancel"
+        ):  # if user closes window or clicks cancel
+            break
 
-    if event == "stopDetect":
-        tc = g.get_trajectory_collection(df)
-        stops = g.detect_stops(
-            tc,
-            min_duration_h=int(values["-MIN_DURATION-"]),
-            max_diameter=int(values["-MAX_DIAMETER-"]),
-        )
-        window["-STOPS_TABLE-"].update(visible=True, values=list(df.values))
+        if event == "Otwórz" and values["dirname"] != "":
+            print(df.columns)
+            df = g.import_data(data_directory_path=values["dirname"])
+            window["-PREVIEW_TABLE-"].update(
+                visible=True,
+                values=df.values.tolist(),
+            )
+            window["deviceIdListbox"].update(visible=True, values=g.get_device_ids(df))
+            window["stopDetect"].update(disabled=False)
 
-    # if (
-    #     event == "-MAX_DIAMETER-"
-    #     and values["-MAX_DIAMETER-"]
-    #     and values["-MAX_DIAMETER-"][-1] not in ("0123456789")
-    # ):
-    #     window["-MAX_DIAMETER-"].update(values["-MAX_DIAMETER-"][:-1])
-    # if (
-    #     event == "-MIN_DURATION-"
-    #     and values["-MIN_DURATION-"]
-    #     and values["-MIN_DURATION-"][-1] not in ("0123456789")
-    # ):
-    #     window["-MIN_DURATION-"].update(values["-MIN_DURATION-"][:-1])
+        if event == "stopDetect":
+            window["-PREVIEW_TABLE-"].update(
+                values=df[df["device_id"].isin(values["deviceIdListbox"])].values.tolist(),
+            )
+            filtered_df = df[df["device_id"].isin(list(values["deviceIdListbox"]))]
+            tc = g.get_trajectory_collection(filtered_df)
+            stops = g.detect_stops(
+                tc,
+                min_duration_h=int(values["-MIN_DURATION-"]),
+                max_diameter=int(values["-MAX_DIAMETER-"]),
+            )
+            window["-STOPS_TABLE-"].update(visible=True, values=stops.values.tolist())
+
+        # if (
+        #     event == "-MAX_DIAMETER-"
+        #     and values["-MAX_DIAMETER-"]
+        #     and values["-MAX_DIAMETER-"][-1] not in ("0123456789")
+        # ):
+        #     window["-MAX_DIAMETER-"].update(values["-MAX_DIAMETER-"][:-1])
+        # if (
+        #     event == "-MIN_DURATION-"
+        #     and values["-MIN_DURATION-"]
+        #     and values["-MIN_DURATION-"][-1] not in ("0123456789")
+        # ):
+        #     window["-MIN_DURATION-"].update(values["-MIN_DURATION-"][:-1])
 
 
-window.close()
+    window.close()
+    exit(0)
+
+
+if __name__ == '__main__':
+    sg.theme('black')
+    main()

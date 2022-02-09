@@ -1,6 +1,5 @@
 import requests
 from math import cos
-from collections import Counter
 
 URL = "https://image.discomap.eea.europa.eu/arcgis/rest/services/Corine/CLC2018_WM/MapServer/identify"
 BASE_PARAMS = {
