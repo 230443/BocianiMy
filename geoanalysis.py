@@ -59,7 +59,7 @@ def get_device_ids(df):
     return df.device_id.unique()
 
 
-def detect_stops(tc, min_duration_h, max_diameter):
+def detect_stops(tc, min_duration_h, max_diameter, include_corine=False):
 
     min_duration = timedelta(hours=min_duration_h)
 
@@ -69,10 +69,15 @@ def detect_stops(tc, min_duration_h, max_diameter):
     if len(stops) != 0:
         stops = stops.assign(duration_h=stops.duration_s / (60 * 60))
         stops = stops.drop(columns=["duration_s"])
+        if include_corine:
+            stops = add_corine(stops)
+    return stops
 
-        stops[["corine_label_id", "corine_label_text"]] = stops.apply(
-            lambda row: cs.get_corine_data(x=row["geometry"].x, y=row["geometry"].y),
-            axis=1,
-            result_type="expand",
-        )
+
+def add_corine(stops):
+    stops[["corine_label_id", "corine_label_text"]] = stops.apply(
+        lambda row: cs.get_corine_data(x=row["geometry"].x, y=row["geometry"].y),
+        axis=1,
+        result_type="expand",
+    )
     return stops
