@@ -1,6 +1,7 @@
 import PySimpleGUI as sg
 import geoanalysis as g
 import pandas as pd
+from fiona import _shim, schema
 
 # sg.theme("DarkAmber")
 sg.theme("SystemDefault1")
@@ -8,10 +9,11 @@ sg.theme("SystemDefault1")
 
 df = pd.DataFrame([])
 tc = []
+stops = None
 
 layout = [
     [sg.Text("Folder z plikami csv")],
-    [sg.Input(key="dirname", default_text="data"), sg.FolderBrowse()],
+    [sg.Input(key="-IN_DIRNAME-", default_text="data"), sg.FolderBrowse()],
     [sg.Button("Otwórz")],
     [
         sg.Table(
@@ -82,6 +84,18 @@ layout = [
             key="-STOPS_TABLE-",
         ),
     ],
+    [
+        sg.Input(key="-OUT_DIRNAME-"),
+        sg.FileSaveAs(
+            default_extension="gpx",
+            file_types=(
+                ("GeoPackage", "*.gpkg"),
+                # ("GPX", "*.gpx"),
+                ("GeoJson", "*.geojson"),
+            ),
+        ),
+    ],
+    [sg.Button("Zapisz", disabled=True)],
 ]
 
 
@@ -95,8 +109,8 @@ def main():
         if event == sg.WIN_CLOSED:  # if user closes window or clicks cancel
             break
 
-        if event == "Otwórz" and values["dirname"] != "":
-            df = g.import_data(data_directory_path=values["dirname"])
+        if event == "Otwórz" and values["-IN_DIRNAME-"] != "":
+            df = g.import_data(data_directory_path=values["-IN_DIRNAME-"])
             if df is not None:
                 window["-PREVIEW_TABLE-"].update(
                     visible=True,
@@ -129,12 +143,16 @@ def main():
                 include_corine=values["-INCLUDE_CORINE-"],
             )
             window["-STOPS_TABLE-"].update(visible=True, values=stops.values.tolist())
+            window["Zapisz"].update(disabled=False)
 
             sg.popup_animated(image_source=None)
             window.refresh()
 
+        if event == "Zapisz" and values["-OUT_DIRNAME-"] != "" and stops is not None:
+            g.save_to_file(df=stops, filename=values["-OUT_DIRNAME-"])
+            sg.popup(f"Zapisano do: {values['-OUT_DIRNAME-']}")
+
     window.close()
-    exit(0)
 
 
 if __name__ == "__main__":

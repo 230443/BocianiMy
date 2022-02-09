@@ -5,6 +5,7 @@ from datetime import timedelta
 import movingpandas as mpd
 import glob
 import corine_service as cs
+from os import path
 
 
 def import_data(data_directory_path):
@@ -81,3 +82,16 @@ def add_corine(stops):
         result_type="expand",
     )
     return stops
+
+
+def save_to_file(df, filename):
+    driver = path.splitext(filename)[1][1:].upper()
+    if driver == "GPX":
+        df["ele"] = 0.0
+        df["magvar"] = 0.0
+        df["geoidheight"] = 0.0
+        df[
+            ["geometry", "ele", "start_time", "magvar", "geoidheight", "traj_id"]
+        ].to_file(filename, driver=driver)
+    else:
+        df.to_file(filename)
