@@ -13,20 +13,16 @@ stops = None
 
 layout = [
     [sg.Text("Folder z plikami csv")],
-    [sg.Input(key="-IN_DIRNAME-", default_text="data"), sg.FolderBrowse()],
+    [sg.Input(key="-IN_FILES-", default_text="data"), sg.FilesBrowse()],
     [sg.Button("Otwórz")],
     [
         sg.Table(
             values=[[]],
             headings=[
                 "device_id",
-                "UTC_datetime",
                 "Latitude",
                 "Longitude",
-                "Altitude_m",
-                "speed_km_h",
-                "direction_deg",
-                "temperature_C",
+                "timestamp",
             ],
             vertical_scroll_only=False,
             visible=False,
@@ -109,8 +105,8 @@ def main():
         if event == sg.WIN_CLOSED:  # if user closes window or clicks cancel
             break
 
-        if event == "Otwórz" and values["-IN_DIRNAME-"] != "":
-            df = g.import_data(data_directory_path=values["-IN_DIRNAME-"])
+        if event == "Otwórz" and values["-IN_FILES-"] != "":
+            df = g.import_data(file_list=values["-IN_FILES-"].split(";"))
             if df is not None:
                 window["-PREVIEW_TABLE-"].update(
                     visible=True,

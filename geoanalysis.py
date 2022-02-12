@@ -8,47 +8,51 @@ import corine_service as cs
 from os import path
 
 
-def import_data(data_directory_path):
-    all_files = glob.glob(data_directory_path + "/*.csv")
+colums_mapper = {
+    "S/N": "device_id",
+    "Longtitude": "Longitude",
+    "GpsNumber": "device_id",
+}
+
+
+def import_data(file_list):
 
     li = []
 
-    if len(all_files) == 0:
+    if len(file_list) == 0:
         return None
 
-    for filename in all_files:
-        df = pd.read_csv(filename, index_col=None, header=0, sep=";")
+    for filename in file_list:
+        df = pd.read_csv(filename, index_col=None, header=0, sep=None)
+        df = unify_columns(df)
         li.append(df)
 
     df = pd.concat(li, axis=0, ignore_index=True)
-
-    # clean data
-    df = df[(df.satcount != 0)]
-    df["t"] = pd.to_datetime(df["UTC_datetime"], format="%d.%m.%Y %H:%M")
-    df = df.drop(
-        columns=[
-            "datatype",
-            "UTC_time",
-            "UTC_date",
-            "satcount",
-            "U_bat_mV",
-            "bat_soc_pct",
-            "solar_I_mA",
-            "hdop",
-            "mag_x",
-            "mag_y",
-            "mag_z",
-            "acc_x",
-            "acc_y",
-            "acc_z",
-        ]
-    )
+    df["timestamp"] = df["t"]
     df = df.set_index("t").tz_localize(None)
     df = df.sort_values(by=["t"])
     df = GeoDataFrame(
         df, geometry=gpd.points_from_xy(df.Longitude, df.Latitude), crs=4326
     )
 
+    return df
+
+
+def unify_columns(df):
+    df.rename(columns=colums_mapper, inplace=True, errors="ignore")
+
+    if "UTC_datetime" in df.columns:
+        df = df[(df.satcount != 0)]
+        df["t"] = pd.to_datetime(df["UTC_datetime"], format="%d.%m.%Y %H:%M", utc=True)
+    if "Collecting time" in df.columns:
+        df = df[(df.HDOP != 0)]
+        df["t"] = pd.to_datetime(df["Collecting time"], utc=True)
+    if "GPSTime" in df.columns:
+        df["t"] = pd.to_datetime(df["GPSTime"], format="%d.%m.%Y %H:%M", utc=True)
+
+    print(df)
+
+    df = df[["t", "device_id", "Latitude", "Longitude"]]
     return df
 
 
