@@ -1,19 +1,23 @@
 import PySimpleGUI as sg
 import geoanalysis as g
-import pandas as pd
 from fiona import _shim, schema
 
 # sg.theme("DarkAmber")
 sg.theme("SystemDefault1")
 
 
-df = pd.DataFrame([])
+df = []
 tc = []
 stops = None
 
 layout = [
     [sg.Text("Folder z plikami csv")],
-    [sg.Input(key="-IN_FILES-", default_text="data"), sg.FilesBrowse()],
+    [
+        sg.Input(key="-IN_FILES-", default_text="data"),
+        sg.FilesBrowse(
+            file_types=(("CSV", "*.csv"),),
+        ),
+    ],
     [sg.Button("Otwórz")],
     [
         sg.Table(
