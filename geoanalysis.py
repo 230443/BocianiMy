@@ -1,9 +1,7 @@
 import pandas as pd
-import geopandas as gpd
-from geopandas import GeoDataFrame
+from geopandas import GeoDataFrame, points_from_xy
 from datetime import timedelta
 import movingpandas as mpd
-import glob
 import corine_service as cs
 from os import path
 
@@ -31,9 +29,7 @@ def import_data(file_list):
     df["timestamp"] = df["t"]
     df = df.set_index("t").tz_localize(None)
     df = df.sort_values(by=["t"])
-    df = GeoDataFrame(
-        df, geometry=gpd.points_from_xy(df.Longitude, df.Latitude), crs=4326
-    )
+    df = GeoDataFrame(df, geometry=points_from_xy(df.Longitude, df.Latitude), crs=4326)
 
     return df
 
