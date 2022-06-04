@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 import geoanalysis as g
-from fiona import _shim, schema
+from fiona import _shim, schema # for PyInstaller
 
 # sg.theme("DarkAmber")
 sg.theme("SystemDefault1")
